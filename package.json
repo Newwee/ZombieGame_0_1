@@ -1,0 +1,13 @@
+{
+  "name": "dead-zone-neon-outbreak",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vanilla canvas zombie survival shooter with leaderboard API.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

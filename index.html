@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dead Zone: Neon Outbreak</title>
+  <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+  <canvas id="gameCanvas" aria-label="Dead Zone game canvas"></canvas>
+
+  <div id="hud" class="hud hidden">
+    <div class="hud-panel hud-stats">
+      <div class="bar-row">
+        <span>HP</span>
+        <div class="bar"><i id="hpBar"></i></div>
+        <strong id="hpText">100/100</strong>
+      </div>
+      <div class="bar-row">
+        <span>Armor</span>
+        <div class="bar armor"><i id="armorBar"></i></div>
+        <strong id="armorText">50/50</strong>
+      </div>
+      <div class="bar-row">
+        <span>Stamina</span>
+        <div class="bar stamina"><i id="staminaBar"></i></div>
+        <strong id="staminaText">100</strong>
+      </div>
+      <div class="stat-grid">
+        <div><span>Money</span><strong id="moneyText">$150</strong></div>
+        <div><span>Score</span><strong id="scoreText">0</strong></div>
+        <div><span>Kills</span><strong id="killsText">0</strong></div>
+        <div><span>Wave</span><strong id="waveText">1</strong></div>
+      </div>
+    </div>
+
+    <div class="hud-panel minimap-panel">
+      <canvas id="minimap" width="184" height="184" aria-label="Minimap"></canvas>
+      <div class="minimap-meta">
+        <span id="zombiesLeftText">0 infected</span>
+        <span id="waveTimerText">Ready</span>
+      </div>
+    </div>
+
+    <div id="bossHud" class="boss-hud hidden">
+      <span id="bossName">Boss</span>
+      <div class="boss-bar"><i id="bossBar"></i></div>
+    </div>
+
+    <div class="weapon-dock">
+      <div id="weaponSlots" class="weapon-slots"></div>
+      <div class="weapon-readout">
+        <strong id="weaponName">Pistol</strong>
+        <span id="ammoText">12 / 36</span>
+      </div>
+      <div id="reloadWrap" class="reload-wrap hidden"><i id="reloadBar"></i></div>
+    </div>
+
+    <div class="skill-dock">
+      <div class="skill" id="grenadeSkill"><b>G</b><span>Grenade</span><em>0</em></div>
+      <div class="skill" id="mineSkill"><b>F</b><span>Mine</span><em>0</em></div>
+      <div class="skill" id="turretSkill"><b>T</b><span>Turret</span><em>0</em></div>
+      <div class="skill" id="medkitSkill"><b>Q</b><span>Medkit</span><em>0</em></div>
+    </div>
+
+    <div id="mobileControls" class="mobile-controls" aria-label="Mobile controls">
+      <div id="mobileStick" class="mobile-stick"><i></i></div>
+      <div class="mobile-actions">
+        <button id="mobileFire" class="mobile-fire" type="button">Fire</button>
+        <button id="mobileDash" type="button">Dash</button>
+        <button id="mobileReload" type="button">Reload</button>
+        <button id="mobileShop" type="button">Shop</button>
+        <button id="mobileGrenade" type="button">Grenade</button>
+        <button id="mobileMedkit" type="button">Medkit</button>
+      </div>
+    </div>
+  </div>
+
+  <button id="muteButton" class="mute-button" type="button">Sound On</button>
+  <div id="centerBanner" class="center-banner"></div>
+  <div id="toastLayer" class="toast-layer"></div>
+
+  <section id="mainMenu" class="overlay menu-overlay">
+    <div class="menu-layout">
+      <div class="menu-box">
+        <p class="eyebrow">Top-Down Survival Shooter</p>
+        <h1>Dead Zone:<br>Neon Outbreak</h1>
+        <p class="menu-copy">Scavenge the quarantine city, survive escalating waves, buy serious firepower, and bring down a boss every fifth wave.</p>
+        <label class="name-entry">
+          <span>Leaderboard Name</span>
+          <input id="playerNameInput" type="text" maxlength="18" autocomplete="nickname" placeholder="Enter your name">
+          <em id="nameError">Enter a name before starting.</em>
+        </label>
+        <div class="menu-stats">
+          <span>Best Score <strong id="menuBestScore">0</strong></span>
+          <span>Highest Wave <strong id="menuBestWave">0</strong></span>
+          <span>Total Kills <strong id="menuTotalKills">0</strong></span>
+        </div>
+        <div class="menu-actions">
+          <button id="startGameBtn" class="primary-btn" type="button">Start Game</button>
+          <button id="howToPlayBtn" type="button">How to Play</button>
+          <button id="settingsBtn" type="button">Settings</button>
+        </div>
+      </div>
+      <aside class="leaderboard-box">
+        <div class="leaderboard-head">
+          <div>
+            <p class="eyebrow">Global Scores</p>
+            <h2>Leaderboard</h2>
+          </div>
+          <button id="refreshLeaderboardBtn" type="button">Refresh</button>
+        </div>
+        <ol id="leaderboardList" class="leaderboard-list">
+          <li><span>Loading...</span></li>
+        </ol>
+        <p id="leaderboardStatus" class="leaderboard-status">Local scores show if the server is offline.</p>
+      </aside>
+      </div>
+  </section>
+
+  <section id="howToPlayPanel" class="overlay side-panel hidden">
+    <div class="panel-box">
+      <h2>How to Play</h2>
+      <div class="control-grid">
+        <span>W A S D</span><p>Move</p>
+        <span>Mouse</span><p>Aim</p>
+        <span>Left Click</span><p>Shoot or hold for automatic weapons</p>
+        <span>R</span><p>Reload</p>
+        <span>B / Tab</span><p>Open shop</p>
+        <span>1-6</span><p>Switch loadout slots</p>
+        <span>Shift</span><p>Sprint</p>
+        <span>Space</span><p>Dash</p>
+        <span>E</span><p>Collect nearby supply items</p>
+        <span>G / F / T / Q</span><p>Grenade, landmine, turret, medkit</p>
+        <span>P / Esc</span><p>Pause or close menus</p>
+        <span>M</span><p>Toggle minimap</p>
+      </div>
+      <button class="backToMenuBtn" type="button">Back</button>
+    </div>
+  </section>
+
+  <section id="settingsPanel" class="overlay side-panel hidden">
+    <div class="panel-box">
+      <h2>Settings</h2>
+      <label class="setting-row">
+        <span>Graphics Quality</span>
+        <select id="qualitySelect">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </label>
+      <label class="setting-row">
+        <span>Sound</span>
+        <button id="settingsMuteBtn" type="button">Sound On</button>
+      </label>
+      <button class="backToMenuBtn" type="button">Back</button>
+    </div>
+  </section>
+
+  <section id="shopOverlay" class="overlay shop-overlay hidden">
+    <div class="shop-box">
+      <header class="shop-header">
+        <div>
+          <p class="eyebrow">Field Shop</p>
+          <h2>Buy Weapons, Ammo, and Upgrades</h2>
+        </div>
+        <div class="shop-money">
+          <span>Cash</span>
+          <strong id="shopMoney">$150</strong>
+        </div>
+        <button id="closeShopBtn" class="icon-close" type="button" aria-label="Close shop">x</button>
+      </header>
+      <nav class="shop-tabs">
+        <button class="shop-tab active" data-tab="weapons" type="button">Weapons</button>
+        <button class="shop-tab" data-tab="ammo" type="button">Ammo</button>
+        <button class="shop-tab" data-tab="upgrades" type="button">Upgrades</button>
+        <button class="shop-tab" data-tab="healing" type="button">Healing</button>
+      </nav>
+      <div id="shopItems" class="shop-items"></div>
+    </div>
+  </section>
+
+  <section id="pauseOverlay" class="overlay pause-overlay hidden">
+    <div class="panel-box compact">
+      <h2>Paused</h2>
+      <button id="resumeBtn" class="primary-btn" type="button">Resume</button>
+      <button id="restartBtn" type="button">Restart</button>
+      <button id="pauseMenuBtn" type="button">Main Menu</button>
+      <button id="pauseMuteBtn" type="button">Sound On</button>
+    </div>
+  </section>
+
+  <section id="gameOverOverlay" class="overlay game-over-overlay hidden">
+    <div class="panel-box game-over-box">
+      <p class="eyebrow">Signal Lost</p>
+      <h2>You Died</h2>
+      <div class="game-over-stats">
+        <span>Final Wave <strong id="finalWave">0</strong></span>
+        <span>Score <strong id="finalScore">0</strong></span>
+        <span>Kills <strong id="finalKills">0</strong></span>
+        <span>Time <strong id="finalTime">0:00</strong></span>
+        <span>Best Score <strong id="finalBestScore">0</strong></span>
+      </div>
+      <button id="gameOverRestartBtn" class="primary-btn" type="button">Restart</button>
+      <button id="gameOverMenuBtn" type="button">Main Menu</button>
+    </div>
+  </section>
+
+  <script src="game.js?v=2"></script>
+</body>
+</html>
